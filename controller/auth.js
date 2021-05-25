@@ -9,16 +9,15 @@ const hashPassword = (password, h) => {
 
 const authenticatePassword = (password, userPassword, h) => {
   console.log("password, userPassword", password, userPassword);
-  
-  return bcrypt.compareSync(password, userPassword)
+  return bcrypt.compare(password, userPassword)
 }
 
 const authenticateUser = (request, username, email, password, h) => {
   // const hashedPassword = hashPassword(password)
   // const user = db.User.findOne({ username, email, password: pwHash }).exec()
-  // const user = db.User.findOne({ username, email }).exec()
+  const user = db.User.findOne({ username, email }).exec()
   // check to see if exists on database
-  const user = db.User.findOne({ where: { username, email } });
+  // const user = db.User.findOne({ where: { username, email } });
   console.log("😝 user", user);
   
   // const isValid = authenticatePassword(user[password], password);
@@ -29,26 +28,14 @@ const authenticateUser = (request, username, email, password, h) => {
   return user
 };
 
-// const validate = async (request, username, password) => {
-
-//   // const user = users[username];
-//   const user = db.User.findOne({ where: { username, email } });
-
-//   if (!user) {
-//       return { credentials: null, isValid: false };
-//   }
-
-//   const isValid = await Bcrypt.compare(user.password, hashPassword(password));
-//   const credentials = { id: user.id, name: user.username };
-
-//   return { isValid, credentials };
-// };
-
 module.exports = [
   {
     // Register User
     method: 'POST',
     path: '/register',
+    options: {
+      auth: 'simple',
+    },
     handler: async (req, h) => {
       const {
         username, email, password,
@@ -57,6 +44,7 @@ module.exports = [
         // const userExists = authenticateUser(req, username, email, password)
         const user = db.User.findOne({ where: { username, email } });
         console.log("😝 user", user);
+        return user
 
         // const results = await db.User.create({
         //   username, 
@@ -68,7 +56,6 @@ module.exports = [
         //   success: true,
         //   id: results.id,
         // };
-        return user
       } catch (e) {
         console.log('error creating user:', e);
         return h.response(`Failed: ${e.message}`).code(500);
@@ -79,6 +66,9 @@ module.exports = [
     // Login User
     method: 'GET',
     path: '/login',
+    options: {
+      auth: 'simple'
+    },
     handler: async (req, h) => {
       const {
         username, email, password,
