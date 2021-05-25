@@ -14,18 +14,19 @@ const authenticatePassword = (password, userPassword, h) => {
 }
 
 const authenticateUser = (request, username, email, password, h) => {
-  const hashedPassword = hashPassword(password)
+  // const hashedPassword = hashPassword(password)
   // const user = db.User.findOne({ username, email, password: pwHash }).exec()
   // const user = db.User.findOne({ username, email }).exec()
   // check to see if exists on database
-  const user = db.User.findOne({ where: { username, email, password: hashedPassword } });
-  console.log("user", user);
+  const user = db.User.findOne({ where: { username, email } });
+  console.log("😝 user", user);
   
-  const isValid = authenticatePassword(user[password], password);
-  const credentials = { id: user.id, name: user.username };
+  // const isValid = authenticatePassword(user[password], password);
+  // const credentials = { id: user.id, name: user.username };
   
-  console.log("credentials, isValid", credentials, isValid);
-  return { isValid, credentials };
+  // console.log("🤓 credentials, isValid", credentials, isValid);
+  // return { isValid, credentials };
+  return user
 };
 
 // const validate = async (request, username, password) => {
@@ -45,44 +46,29 @@ const authenticateUser = (request, username, email, password, h) => {
 
 module.exports = [
   {
+    // Register User
     method: 'POST',
     path: '/register',
     handler: async (req, h) => {
       const {
-        username, email, password, firstName, lastName, mobileNum, address,
+        username, email, password,
       } = req.payload;
       try {
-        const userExists = authenticateUser(req, username, email, password)
+        // const userExists = authenticateUser(req, username, email, password)
+        const user = db.User.findOne({ where: { username, email } });
+        console.log("😝 user", user);
 
-        if (!userExists) {
-          // const results = await db.User.create({
-          //   username, 
-          //   email, 
-          //   userDetail: {
-          //     password: await hashPassword(password),
-          //     firstName, 
-          //     lastName,
-          //     mobileNum,
-          //     address,
-          //   }
-          // }, {
-          //   include: [
-          //     {
-          //       model: db.UserDetail,
-          //       as: 'userDetail',
-          //     },
-          //   ],
-          // });
-  
-          // return {
-          //   success: true,
-          //   id: results.id,
-          // };
+        // const results = await db.User.create({
+        //   username, 
+        //   email, 
+        //   password: await hashPassword(password),
+        // });
 
-        } else {
-          console.log('error creating user, user already exists:', e);
-          return h.response(`Failed: ${e.message}`).code(500);
-        }
+        // return {
+        //   success: true,
+        //   id: results.id,
+        // };
+        return user
       } catch (e) {
         console.log('error creating user:', e);
         return h.response(`Failed: ${e.message}`).code(500);
@@ -90,6 +76,7 @@ module.exports = [
     },
   }, 
   {
+    // Login User
     method: 'GET',
     path: '/login',
     handler: async (req, h) => {
@@ -97,7 +84,7 @@ module.exports = [
         username, email, password,
       } = req.payload;
       try {
-        const results = await db.User.create({
+        const results = await db.User.findAll({
           username, 
           email, 
           password
@@ -113,6 +100,7 @@ module.exports = [
     },
   }, 
   {
+    // Get User Info
     method: 'GET',
     path: '/profile/{id}',
     handler: async (req, h) => {
@@ -129,6 +117,7 @@ module.exports = [
     },
   }, 
   {
+    // Update User Info
     method: 'PUT',
     path: '/profile/{id}',
     handler: async (req, h) => {
@@ -150,14 +139,7 @@ module.exports = [
         );
         updatePromises.push(updateUsersPromise);
 
-        const updateUserDetailsPromise = db.UserDetail.update(
-          updateUserDetailsObject,
-          { where: { id } },
-        );
-        updatePromises.push(updateUserDetailsPromise); 
-
         await Promise.all(updatePromises);
-
 
         const results = await db.User.findAll({
           where: { id },
