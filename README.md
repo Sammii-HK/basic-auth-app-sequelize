@@ -1,0 +1,1 @@
+# basic-auth-app-sequelize
