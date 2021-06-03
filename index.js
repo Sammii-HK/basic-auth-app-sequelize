@@ -6,12 +6,14 @@ const Bcrypt = require('bcrypt');
 const db = require('./models');
 
 
-const validate = async (request, username, password) => {
+const validate = async (request, username, email, password) => {
   try {
       // const user = db.users[username];
       const user = await db.User.findAll({
-        where: { username },
+        where: { username, email },
       });
+      console.log("user", user);
+      
       if (!user) {
           return { credentials: null, isValid: false };
       }
@@ -34,6 +36,7 @@ const start = async () => {
 
   await server.register(require('@hapi/basic'));
   server.auth.strategy('simple', 'basic', { validate });
+  server.auth.default('simple')
 
   server.route(Routes);
 
