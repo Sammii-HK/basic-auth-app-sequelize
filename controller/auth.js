@@ -7,26 +7,7 @@ const hashPassword = (password, h) => {
   return bcrypt.hash(password, 10)
 }
 
-const authenticatePassword = (password, userPassword, h) => {
-  console.log("password, userPassword", password, userPassword);
-  return bcrypt.compare(password, userPassword)
-}
 
-const authenticateUser = (request, username, email, password, h) => {
-  // const hashedPassword = hashPassword(password)
-  // const user = db.User.findOne({ username, email, password: pwHash }).exec()
-  const user = db.User.findOne({ username, email }).exec()
-  // check to see if exists on database
-  // const user = db.User.findOne({ where: { username, email } });
-  console.log("😝 user", user);
-  
-  // const isValid = authenticatePassword(user[password], password);
-  // const credentials = { id: user.id, name: user.username };
-  
-  // console.log("🤓 credentials, isValid", credentials, isValid);
-  // return { isValid, credentials };
-  return user
-};
 
 module.exports = [
   {
