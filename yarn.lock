@@ -60,6 +60,14 @@
     "@hapi/boom" "9.x.x"
     "@hapi/hoek" "9.x.x"
 
+"@hapi/catbox-object@2.x.x":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@hapi/catbox-object/-/catbox-object-2.0.0.tgz#cd5390e011d8388b923744bc746322604b9296b9"
+  integrity sha512-tzTo5q9UVqwqtpNkIz0VNSmJTbaGyD9ZQmw4a91BBWB+YJWYa066KkxOTHGmmWJzjZEhG2CsNYKu34J25pA5aw==
+  dependencies:
+    "@hapi/boom" "9.x.x"
+    "@hapi/hoek" "9.x.x"
+
 "@hapi/catbox@^11.1.1":
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/@hapi/catbox/-/catbox-11.1.1.tgz#d277e2d5023fd69cddb33d05b224ea03065fec0c"
@@ -137,6 +145,22 @@
     "@hapi/bourne" "2.x.x"
     "@hapi/cryptiles" "5.x.x"
     "@hapi/hoek" "9.x.x"
+
+"@hapi/jwt@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@hapi/jwt/-/jwt-2.0.1.tgz#70db2a392b3b69349666cee677f80dfab2d0985b"
+  integrity sha512-6/nX/yOIk9mvs+r72LFhF177yOB4yVv3e0Nqn7cIx2CU+VruBHxMKkHraARXx6oUAtiwNuyhW+trO5QeGm9ESQ==
+  dependencies:
+    "@hapi/b64" "5.x.x"
+    "@hapi/boom" "9.x.x"
+    "@hapi/bounce" "2.x.x"
+    "@hapi/bourne" "2.x.x"
+    "@hapi/catbox-object" "2.x.x"
+    "@hapi/cryptiles" "5.x.x"
+    "@hapi/hoek" "9.x.x"
+    "@hapi/wreck" "17.x.x"
+    ecdsa-sig-formatter "1.x.x"
+    joi "^17.2.1"
 
 "@hapi/mimos@^6.0.0":
   version "6.0.0"
@@ -569,7 +593,7 @@ dottie@^2.0.0:
   resolved "https://registry.yarnpkg.com/dottie/-/dottie-2.0.2.tgz#cc91c0726ce3a054ebf11c55fbc92a7f266dd154"
   integrity sha512-fmrwR04lsniq/uSr8yikThDTrM7epXHBAAjH9TbeH3rEA8tdCO7mRzB9hdmdGyJCxF8KERo9CITcm3kGuoyMhg==
 
-ecdsa-sig-formatter@1.0.11:
+ecdsa-sig-formatter@1.0.11, ecdsa-sig-formatter@1.x.x:
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz#ae0f0fa2d85045ef14a817daa3ce9acd0489e5bf"
   integrity sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==
@@ -847,7 +871,7 @@ joi@14.x.x:
     isemail "3.x.x"
     topo "3.x.x"
 
-joi@^17.4.0:
+joi@^17.2.1, joi@^17.4.0:
   version "17.4.0"
   resolved "https://registry.yarnpkg.com/joi/-/joi-17.4.0.tgz#b5c2277c8519e016316e49ababd41a1908d9ef20"
   integrity sha512-F4WiW2xaV6wc1jxete70Rw4V/VuMd6IN+a5ilZsxG4uYtUXWu2kq9W5P2dz30e7Gmw8RCbY/u/uk+dMPma9tAg==
