@@ -3,14 +3,20 @@
 const db = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { secret } = require('../config/environment');
+const Jwt = require('@hapi/jwt');
+const { secret, tokenExpiry } = require('../config/environment');
 const Boom = require('boom');
+const { verifyToken, isVerified, decodedToken } = require('../lib/secureRoute.js')
+
 
 module.exports = [
+  // Register User
   {
-    // Register User
     method: 'POST',
     path: '/register',
+    options: {
+      auth: false,
+    },
     handler: async (req, h) => {
       const {
         username, email, password,
@@ -45,19 +51,18 @@ module.exports = [
       }
     },
   }, 
+  // Login User
   {
-    // Login User
     method: 'POST',
     path: '/login',
     options: {
-      // auth: 'simple'
+      auth: false,
     },
     handler: async (req, h) => {
       const {
         username, password,
       } = req.payload;
       try {
-        let token
         let message
         await db.User.findOne({ where: { username } })
         .then(async user => {
@@ -69,7 +74,10 @@ module.exports = [
             message = Boom.unauthorized('The username and/or password to not match our system.');
           } else if (isPasswordValid) {
             // create a token
-            token = jwt.sign({ sub: user.id }, secret, { expiresIn: '6h' })
+            // const token = jwt.sign({ sub: user.id }, secret, { expiresIn: '6h' })
+            const token = Jwt.token.generate(
+              { sub: user.id }, { key: secret }, { tokenExpiry }
+            );
             // send it to the client
             message = {
               success: true,
@@ -87,17 +95,29 @@ module.exports = [
       }
     },
   }, 
+  // Get User Info
   {
-    // Get User Info
     method: 'GET',
     path: '/profile/{id}',
     handler: async (req, h) => {
       try {
-        const { id } = req.params;
-        const results = await db.User.findAll({
-          where: { id },
-        });
-        return results;
+        const token = req.headers.token;
+        console.log("🔒 token", token);
+        
+        const decoded = decodedToken(token)
+        const verify = isVerified(decoded, secret)
+        console.log("verify", verify);
+
+        if (verify) {
+          const { id } = req.params;
+          const results = await db.User.findOne({
+            where: { id },
+          });
+          console.log(`Hey ${results.username}!`);
+          
+          return results;
+        }
+
       } catch (e) {
         console.log('error finding user:', e);
         return h.response(`Failed: ${e.message}`).code(500);
