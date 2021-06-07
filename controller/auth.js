@@ -3,6 +3,8 @@
 const db = require('../models');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { secret } = require('../config/environment');
 const Boom = require('boom');
 
 module.exports = [
@@ -10,9 +12,6 @@ module.exports = [
     // Register User
     method: 'POST',
     path: '/register',
-    options: {
-      auth: 'simple',
-    },
     handler: async (req, h) => {
       const {
         username, email, password,
@@ -49,28 +48,44 @@ module.exports = [
   }, 
   {
     // Login User
-    method: 'GET',
+    method: 'POST',
     path: '/login',
     options: {
-      auth: 'simple'
+      // auth: 'simple'
     },
     handler: async (req, h) => {
       const {
-        username, email, password,
+        username, password,
       } = req.payload;
       try {
-        const results = await db.User.findAll({
-          username, 
-          email, 
-          password
-        });
-        return {
-          success: true,
-          id: results.id,
-        };
-      } catch (e) {
-        console.log('error finding user:', e);
-        return h.response(`Failed: ${e.message}`).code(500);
+        let token
+        let message
+        await db.User.findOne({ where: { username } })
+        .then(async user => {
+          const isPasswordValid = await bcrypt.compare(password, user.password)
+          // check their password is valid
+          console.log("🔮 isPasswordValid", isPasswordValid); 
+          if(!isPasswordValid) {
+            console.log("🥊 DENIED");
+            message = Boom.unauthorized('The username and/or password to not match our system.');
+          } else if (isPasswordValid) {
+            // create a token
+            token = jwt.sign({ sub: user.id }, secret, { expiresIn: '6h' })
+            // send it to the client
+            message = {
+              success: true,
+              id: user.id,
+              credentials: token,
+              isValid: true,
+              message: `Welcome back, ${user.username}!`,
+            };
+          }
+        })       
+        return message
+
+      } catch (h) {
+        console.log('error finding user:', h);
+        return Boom.badImplementation(`Failed: ${h.message}`)
       }
     },
   }, 
