@@ -1,13 +1,9 @@
 'use strict'
 
 const db = require('../models');
+const User = require('../models/User');
 const bcrypt = require('bcrypt');
-
-const hashPassword = (password, h) => {
-  return bcrypt.hash(password, 10)
-}
-
-
+const Boom = require('boom');
 
 module.exports = [
   {
@@ -21,25 +17,33 @@ module.exports = [
       const {
         username, email, password,
       } = req.payload;
-      try {
-        // const userExists = authenticateUser(req, username, email, password)
-        const user = db.User.findOne({ where: { username, email } });
-        console.log("😝 user", user);
-        return user
-
-        // const results = await db.User.create({
-        //   username, 
-        //   email, 
-        //   password: await hashPassword(password),
-        // });
-
-        // return {
-        //   success: true,
-        //   id: results.id,
-        // };
-      } catch (e) {
-        console.log('error creating user:', e);
-        return h.response(`Failed: ${e.message}`).code(500);
+      try {    
+        let message
+        await db.User.findOne({ where: { username, email } })
+        .then(async (user) => {
+          // only create a user if none are found with matching credentials
+          if(!user) {
+            const results = await db.User.create({
+              username, 
+              email, 
+              password: await bcrypt.hash(password, 10),
+            });
+            message = {
+              success: true,
+              results: {
+                id: results.id,
+                username: results.username,
+              },
+            };
+          } else {
+            message = Boom.methodNotAllowed(`Failed: user already exists!`)
+          }
+        })
+        return message
+        
+      } catch (h) {
+        console.log('error creating user:', h);
+        return Boom.badImplementation(`Failed: ${h.message}`)
       }
     },
   }, 
