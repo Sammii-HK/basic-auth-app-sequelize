@@ -1,7 +1,6 @@
 'use strict'
 
 const db = require('../models');
-const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config/environment');
@@ -75,9 +74,8 @@ module.exports = [
             message = {
               success: true,
               id: user.id,
-              credentials: token,
-              isValid: true,
               message: `Welcome back, ${user.username}!`,
+              credentials: token,
             };
           }
         })       
