@@ -113,9 +113,12 @@ module.exports = [
           const results = await db.User.findOne({
             where: { id },
           });
-          console.log(`Hey ${results.username}!`);
           
-          return results;
+          return {
+            welcome: `Hey ${results.username}!`,
+            verify,
+            results,
+          };
         }
 
       } catch (e) {
@@ -140,20 +143,32 @@ module.exports = [
       };
 
       try {
-        const updatePromises = [];
-        const updateUsersPromise = db.User.update(
-          updateUsersObject,
-          { where: { id } },
-        );
-        updatePromises.push(updateUsersPromise);
+        const token = req.headers.token;
+        console.log("🔒 token", token);
+        
+        const decoded = decodedToken(token)
+        const verify = isVerified(decoded, secret)
+        console.log("verify", verify);
 
-        await Promise.all(updatePromises);
-
-        const results = await db.User.findAll({
-          where: { id },
-        });
-
-        return results
+        if (verify) {
+          const updatePromises = [];
+          const updateUsersPromise = db.User.update(
+            updateUsersObject,
+            { where: { id } },
+          );
+          updatePromises.push(updateUsersPromise);
+  
+          await Promise.all(updatePromises);
+  
+          const results = await db.User.findAll({
+            where: { id },
+          });
+  
+          return {
+            verify,
+            results
+          }
+        }
 
       } catch (e) {
         console.log('error updating user:', e);
