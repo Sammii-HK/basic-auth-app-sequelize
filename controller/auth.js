@@ -127,8 +127,8 @@ module.exports = [
       }
     },
   }, 
+  // Update User Info
   {
-    // Update User Info
     method: 'PUT',
     path: '/profile/{id}',
     handler: async (req, h) => {
