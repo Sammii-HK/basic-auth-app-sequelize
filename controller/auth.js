@@ -10,9 +10,6 @@ module.exports = [
   {
     method: 'POST',
     path: '/register',
-    options: {
-      auth: false,
-    },
     handler: async (req, h) => {
       const {
         username, email, password,
@@ -51,9 +48,6 @@ module.exports = [
   {
     method: 'POST',
     path: '/login',
-    options: {
-      auth: false,
-    },
     handler: async (req, h) => {
       const {
         username, password,
