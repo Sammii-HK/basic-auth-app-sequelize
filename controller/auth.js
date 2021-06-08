@@ -1,8 +1,12 @@
 'use strict'
 
 const db = require('../models');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const Jwt = require('@hapi/jwt');
+const { secret, tokenExpiry } = require('../config/environment');
 const Boom = require('boom');
-const { isPasswordValid, isVerified, generateToken } = require('../lib/secureRoute.js')
+const { verifyToken, isVerified, decodedToken } = require('../lib/secureRoute.js')
 
 
 module.exports = [
@@ -10,6 +14,9 @@ module.exports = [
   {
     method: 'POST',
     path: '/register',
+    options: {
+      auth: false,
+    },
     handler: async (req, h) => {
       const {
         username, email, password,
@@ -48,6 +55,9 @@ module.exports = [
   {
     method: 'POST',
     path: '/login',
+    options: {
+      auth: false,
+    },
     handler: async (req, h) => {
       const {
         username, password,
@@ -56,15 +66,18 @@ module.exports = [
         let message
         await db.User.findOne({ where: { username } })
         .then(async user => {
+          const isPasswordValid = await bcrypt.compare(password, user.password)
           // check their password is valid
-          const verifyPassword = await isPasswordValid(password, user.password)
-          console.log("🔮 isPasswordValid", verifyPassword); 
-          if(!verifyPassword) {
+          console.log("🔮 isPasswordValid", isPasswordValid); 
+          if(!isPasswordValid) {
             console.log("🥊 DENIED");
             message = Boom.unauthorized('The username and/or password to not match our system.');
-          } else if (verifyPassword) {
+          } else if (isPasswordValid) {
             // create a token
-            const token = generateToken(user.id)
+            // const token = jwt.sign({ sub: user.id }, secret, { expiresIn: '6h' })
+            const token = Jwt.token.generate(
+              { sub: user.id }, { key: secret }, { tokenExpiry }
+            );
             // send it to the client
             message = {
               success: true,
@@ -88,21 +101,22 @@ module.exports = [
     path: '/profile/{id}',
     handler: async (req, h) => {
       try {
-        const token = req.headers.token;       
-        const verify = isVerified(token)
+        const token = req.headers.token;
+        console.log("🔒 token", token);
+        
+        const decoded = decodedToken(token)
+        const verify = isVerified(decoded, secret)
+        console.log("verify", verify);
 
-        if (verify.isValid) {
+        if (verify) {
           const { id } = req.params;
           const results = await db.User.findOne({
             where: { id },
           });
+          console.log(`Hey ${results.username}!`);
           
-          return {
-            message: `Hey ${results.username}!`,
-            verify,
-            results,
-          };
-        } else return { verify }
+          return results;
+        }
 
       } catch (e) {
         console.log('error finding user:', e);
