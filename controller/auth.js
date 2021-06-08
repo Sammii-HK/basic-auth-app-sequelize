@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const Jwt = require('@hapi/jwt');
 const { secret, tokenExpiry } = require('../config/environment');
 const Boom = require('boom');
-const { verifyToken, isVerified, decodedToken } = require('../lib/secureRoute.js')
+const { isVerified, generateToken } = require('../lib/secureRoute.js')
 
 
 module.exports = [
@@ -66,18 +66,16 @@ module.exports = [
         let message
         await db.User.findOne({ where: { username } })
         .then(async user => {
-          const isPasswordValid = await bcrypt.compare(password, user.password)
           // check their password is valid
+          const isPasswordValid = await bcrypt.compare(password, user.password)
           console.log("🔮 isPasswordValid", isPasswordValid); 
+
           if(!isPasswordValid) {
             console.log("🥊 DENIED");
             message = Boom.unauthorized('The username and/or password to not match our system.');
           } else if (isPasswordValid) {
             // create a token
-            // const token = jwt.sign({ sub: user.id }, secret, { expiresIn: '6h' })
-            const token = Jwt.token.generate(
-              { sub: user.id }, { key: secret }, { tokenExpiry }
-            );
+            const token = generateToken(user.id, secret, tokenExpiry)
             // send it to the client
             message = {
               success: true,
@@ -101,22 +99,21 @@ module.exports = [
     path: '/profile/{id}',
     handler: async (req, h) => {
       try {
-        const token = req.headers.token;
-        console.log("🔒 token", token);
-        
-        const decoded = decodedToken(token)
-        const verify = isVerified(decoded, secret)
-        console.log("verify", verify);
+        const token = req.headers.token;       
+        const verify = isVerified(token, secret)
 
-        if (verify) {
+        if (verify.isValid) {
           const { id } = req.params;
           const results = await db.User.findOne({
             where: { id },
           });
-          console.log(`Hey ${results.username}!`);
           
-          return results;
-        }
+          return {
+            message: `Hey ${results.username}!`,
+            verify,
+            results,
+          };
+        } else return { verify }
 
       } catch (e) {
         console.log('error finding user:', e);
