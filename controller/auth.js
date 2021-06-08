@@ -1,12 +1,8 @@
 'use strict'
 
 const db = require('../models');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const Jwt = require('@hapi/jwt');
-const { secret, tokenExpiry } = require('../config/environment');
 const Boom = require('boom');
-const { isVerified, generateToken } = require('../lib/secureRoute.js')
+const { isPasswordValid, isVerified, generateToken } = require('../lib/secureRoute.js')
 
 
 module.exports = [
@@ -67,15 +63,14 @@ module.exports = [
         await db.User.findOne({ where: { username } })
         .then(async user => {
           // check their password is valid
-          const isPasswordValid = await bcrypt.compare(password, user.password)
-          console.log("🔮 isPasswordValid", isPasswordValid); 
-
-          if(!isPasswordValid) {
+          const verifyPassword = await isPasswordValid(password, user.password)
+          console.log("🔮 isPasswordValid", verifyPassword); 
+          if(!verifyPassword) {
             console.log("🥊 DENIED");
             message = Boom.unauthorized('The username and/or password to not match our system.');
-          } else if (isPasswordValid) {
+          } else if (verifyPassword) {
             // create a token
-            const token = generateToken(user.id, secret, tokenExpiry)
+            const token = generateToken(user.id)
             // send it to the client
             message = {
               success: true,
@@ -100,7 +95,7 @@ module.exports = [
     handler: async (req, h) => {
       try {
         const token = req.headers.token;       
-        const verify = isVerified(token, secret)
+        const verify = isVerified(token)
 
         if (verify.isValid) {
           const { id } = req.params;
